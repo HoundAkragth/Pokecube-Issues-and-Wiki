@@ -708,6 +708,25 @@ public class MovesUtils implements IMoveConstants
                     }
                 }
 
+                if (move.isMultiTarget())
+                {
+                    LivingEntity ally = pokemob.getMoveStats().getTargetAlly();
+                    if (ally != null && ally != mob && !applied.contains(ally.getUUID()))
+                    {
+                        apply.setTarget(ally);
+                        if (target_test.test(apply) && applied.add(ally.getUUID()))
+                        {
+                            if (!PokecubeAPI.MOVE_BUS.post(new MoveUse.ActualMoveUse.Init(pokemob, move, ally)).isCanceled())
+                            {
+                                Vector3 allyPos = new Vector3().set(ally);
+                                final EntityMoveUse moveUse = EntityMoveUse.create(level, apply, allyPos);
+                                MoveQueuer.queueMove(moveUse);
+                                did = true;
+                            }
+                        }
+                    }
+                }
+
                 if (!did)
                 {
                     if (PokecubeAPI.MOVE_BUS.post(new MoveUse.ActualMoveUse.Init(pokemob, move, null)).isCanceled())
